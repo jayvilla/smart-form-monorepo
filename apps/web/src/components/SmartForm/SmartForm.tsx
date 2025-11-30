@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { buildFormMeta } from "./buildFormMeta";
 import { InputField } from "./InputField";
-import { UserFormSchema } from "@smart/schemas"; // imported directly
 import { FieldMeta } from "./buildFormMeta";
+import { UserFormSchema } from "@smart/schemas";
 
-export default function SmartForm({ onSubmit }) {
+export default function SmartForm() {
   const meta = buildFormMeta(UserFormSchema);
 
   const [values, setValues] = useState<Record<string, any>>({});
@@ -16,9 +16,10 @@ export default function SmartForm({ onSubmit }) {
     setValues((prev) => ({ ...prev, [path]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    // 1. Client-side validation
     const result = UserFormSchema.safeParse(values);
 
     if (!result.success) {
@@ -31,7 +32,30 @@ export default function SmartForm({ onSubmit }) {
     }
 
     setErrors({});
-    onSubmit(result.data);
+
+    // 2. Send to backend
+    const res = await fetch("http://localhost:8000/user-form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result.data),
+    });
+
+    if (!res.ok) {
+      // 3. server errors
+      const data = await res.json();
+
+      const serverErrMap: Record<string, string> = {};
+      data.errors?.forEach((err: any) => {
+        serverErrMap[err.path] = err.message;
+      });
+
+      setErrors(serverErrMap);
+      return;
+    }
+
+    const json = await res.json();
+    console.log("Success:", json);
+    alert("Form submitted successfully!");
   }
 
   function renderField(field: FieldMeta) {
