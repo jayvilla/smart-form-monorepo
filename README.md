@@ -109,7 +109,7 @@ Validates form submissions using **ZodValidationPipe**.
 - Returns **400** with structured errors on validation failure
 - Returns validated data on success
 
-#### ✅ Example Success Response
+#### Example Success Response
 
 ```json
 {
@@ -118,7 +118,7 @@ Validates form submissions using **ZodValidationPipe**.
 }
 ```
 
-### Example Error Response
+#### Example Error Response
 
 ```json
 {
